@@ -1,0 +1,308 @@
+Player p;
+Spike s;
+WallJump j;
+Platform platform1;
+Roomwarp roomgoal;
+SolidObject o;
+Deathscreen d;
+Victoryscreen v;
+Grapplepoint g;
+Sign signs;
+ScoreTimer t;
+Animation playeranimation;
+Item item;
+Level level;
+MainMenu mm;
+LevelEnd levelend;
+int levelswitch = 2;
+Spawnpoint spawnpoint;
+import processing.sound.*;
+SoundFile bgm;
+SoundFile jumpSound;
+SoundFile walkSound;
+
+PImage idleframe;
+PImage jumpLeft;
+PImage jumpRight;
+PImage girlidleframe;
+PImage girljumpLeft;
+PImage girljumpRight;
+PImage character1frame;
+PImage character2frame;
+
+PImage itemimage;
+PImage Base;
+PImage BaseRight;
+PImage BaseLeft;
+PImage Grass;
+PImage TopRight;
+PImage TopLeft;
+PImage Top;
+PImage Bottom;
+PImage BottomRight;
+PImage BottomLeft;
+PImage BrickRightEdge;
+PImage BrickLeftEdge;
+PImage HorizontalEdge;
+PImage VerticalEdge;
+PImage BottomEdge;
+PImage VineBase;
+PImage VineTopRight;
+PImage VineTopLeft;
+PImage VineBottomLeft;
+PImage VineBottomRight;
+
+PImage Level1img;
+PImage Level2img;
+PImage Level5img;
+
+void setup() {
+  frameRate(60);
+
+  bgm = new SoundFile(this, "bgm.mp3");  
+  jumpSound = new SoundFile(this, "jump.wav");  
+  walkSound = new SoundFile(this, "walk.wav");
+
+  spawnpoint = new Spawnpoint();
+  levelend = new LevelEnd();
+  level = new Level();
+  item = new Item();
+
+  jumpLeft = loadImage("Jumpleft.png");
+  jumpRight = loadImage("Jumpright.png");
+  idleframe = loadImage("Runcycle1.png");
+  girljumpLeft = loadImage("GirlJumpleft.png");
+  girljumpRight = loadImage("GirlJumpright.png");
+  girlidleframe = loadImage("GirlRuncycle1.png");
+  character1frame = loadImage("Character1frame.png");
+  character2frame = loadImage("Character2frame.png");
+
+  itemimage = loadImage("Gem.png");  
+  Level1img = loadImage("Level 1.png");
+  Level2img = loadImage("Level 2.png");
+  Level5img = loadImage("Level 5.png");
+
+  Base = loadImage("DirtBase.png");
+  BaseRight = loadImage("DirtBaseRightEdge.png");
+  BaseLeft = loadImage("DirtBaseLeftEdge.png");
+  Grass = loadImage("DirtGrass.png");
+  BrickRightEdge = loadImage("BrickRightEdge.png");
+  BrickLeftEdge = loadImage("BrickLeftEdge.png");
+  TopRight = loadImage("DirtRightTopCorner.png");
+  TopLeft = loadImage("DirtLeftTopCorner.png");
+  Top = loadImage("DirtTopCorners.png");
+  BottomRight = loadImage("DirtBottomRightCorner.png");
+  BottomLeft = loadImage("DirtBottomLeftCorner.png");
+  Bottom = loadImage("DirtBottomEdge.png");
+  HorizontalEdge = loadImage("DirtHorizontalEdges.png");
+  VerticalEdge = loadImage("DirtVerticalEdges.png");
+  BottomEdge = loadImage("DirtBottomEdges.png");
+  VineBase = loadImage("VineBase.png");
+  VineTopRight = loadImage("VineEdgeLeftTop.png");
+  VineTopLeft = loadImage("VineEdgeRightTop.png");
+  VineBottomRight = loadImage("VineBottomRightEdge.png");
+  VineBottomLeft = loadImage("VineBottomLeftEdge.png");
+
+  size(1300, 800); 
+  p = new Player();
+  s = new Spike();
+  j = new WallJump();
+  platform1 = new Platform();
+  roomgoal = new Roomwarp();
+  o = new SolidObject();
+  d = new Deathscreen();
+  v = new Victoryscreen();
+  g = new Grapplepoint();
+  signs = new Sign();
+  signs.loadImages();
+  t = new ScoreTimer();  
+  playeranimation = new Animation();
+  playeranimation.loadImages();
+
+  mm = new MainMenu();
+
+  t.TimerSetup();
+  spawnpoint.spawnPointSetup();
+
+  bgm.amp(0.1);
+  bgm.loop();
+  walkSound.amp(0.4);
+  jumpSound.amp(0.17);
+  walkSound.rate(1.5);
+}
+
+void draw() 
+{
+  noStroke();
+
+  if (p.isdead == false)
+  {
+    switch(levelswitch) {
+    case 0:
+      switch(mm.menuState) {
+      case 0:
+        mm.TitleMenu();
+        break;
+      case 1:
+        mm.PlayMenu();
+        break;
+      case 2:
+        mm.CharacterMenu();
+        break;
+      }
+      break;
+    case 1:
+      level.DrawLevel1();
+      break;
+    case 2:
+      level.DrawLevel2();
+      break;
+    case 3:
+      level.DrawLevel3();
+      break;
+    case 4:
+      level.DrawLevel4();
+      break;
+    case 5:
+      level.DrawLevel5();
+      break;
+    }
+  }
+
+  if (levelswitch > 0)
+  {
+    t.Timer();
+  }
+
+  if (p.isdead == true) {
+    d.DrawDeathscreen();
+  }
+  if (p.iswin == true) {
+    v.DrawVictoryscreen();
+  }
+
+  //hard caps player speed
+  if (p.speedy > 20)
+  {
+    p.speedy = 20;
+  } else if (p.speedy < -20)
+  {
+    p.speedy = -20;
+  }
+
+  if (p.speedx > 15)
+  {
+    p.speedx = 15;
+  } else if (p.speedx < -15)
+  {
+    p.speedx = -15 ;
+  }
+}
+
+void keyPressed() {    
+  if (key == 'a' || key == 'A') {      
+    p.moveLeft = true;
+  }
+
+  if (key == 'd' || key == 'D') {    
+    p.moveRight = true;
+  }
+
+  if ((key == 'a' || key == 'A') && levelswitch > 0 && !p.isdead && !p.iswin && p.grounded) {      
+    walkSound.loop();
+  }
+
+  if ((key == 'd' || key == 'D') && levelswitch > 0 && !p.isdead && !p.iswin && p.grounded) {    
+    p.moveRight = true;
+    walkSound.loop();
+  }
+
+
+  if (key == ' ' && p.grounded == true) {
+    jumpSound.play();
+  }
+  
+  if (key == ' ' && p.grounded == true) {
+    p.grounded = false;  
+    p.speedy = p.speedy - 20;
+    println("jump");
+    walkSound.stop();
+  }
+
+
+
+
+  if (key == ' ' && p.onPlatform == true) {
+    p.onPlatform = false;  
+    p.speedy = p.speedy - 20;
+    println("jump");
+  }
+
+  if (key == ' ' && p.touchingRWall == true) {
+    p.grounded = false;
+    p.touchingRWall = false;
+    p.speedy = -20;
+    p.speedx = -15;
+    println("rightWalljump");
+  }
+  if (key == ' ' && p.touchingLWall == true) {
+    p.grounded = false;
+    p.touchingLWall = false;
+    p.speedy = -20;
+    p.speedx = 15;
+    println("rightWalljump");
+  }
+  if (key == ' ' && p.isdead == true) {
+    t.TimeCount = 0.1;
+    p.isdead = false;
+    spawnpoint.spawnPointSetup();
+    item.Active = true;
+    t.Score -= 60;
+    if (t.Score < 0) {
+      t.Score = 0;
+    }
+  }
+  if (key == ' ' && p.iswin == true) {
+    p.iswin = false;
+    levelswitch = 0;
+    p.x = 100;
+    p.y = 600;
+    t.Timer = t.Timerstartvalue;
+    item.Active = true;
+  }
+
+  if (key == ' ' && p.playerGrappled == true) {
+    p.grappleActive = false;
+    p.playerGrappled = false;  
+    p.speedy = p.speedy - 20;
+    println("jump");
+  }
+  if (key == 'k' || key == 'K') {
+    p.grappleActive = true;
+    println("Grappling Hook used");
+  }
+}
+
+void keyReleased() {  
+  if (key == 'a' || key == 'A') {
+    p.moveLeft = false;
+    walkSound.stop();
+  }
+
+  if (key == 'd' || key == 'D') {
+    p.moveRight = false;
+    walkSound.stop();
+  }
+  if (key == 'k' || key == 'K') {
+    p.grappleActive = false;
+    println("Grappling Hook used");
+  }
+}
+
+void mousePressed() {
+  mm.clicking = true;
+}
+
+void mouseReleased() {
+  mm.clicking = false;
+}
